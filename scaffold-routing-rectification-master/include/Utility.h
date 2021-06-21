@@ -10,6 +10,7 @@
 
 #include <Definition.h>
 #include <Physics.h>
+#include <string>
 
 #include <cassert>
 #include <vector>

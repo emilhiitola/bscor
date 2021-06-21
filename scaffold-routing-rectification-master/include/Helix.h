@@ -5,6 +5,8 @@
 
 #include <array>
 #include <utility>
+#include <tuple>
+#include <stdexcept>
 
 class Helix {
 public:
