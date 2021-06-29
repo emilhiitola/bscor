@@ -1,34 +1,15 @@
-/**
-* Searches for an A-trail from an edge code file.
-* Argument 1: the edge code file.
-* Argument 2 (Optional): a trail file as a sequence of edge indices. This has an extension '.trail'.
-* Argument 3 (Optional): a trail file as a sequence of node indices(zero based). The trail ends with the vertice it began. The output file has extension `.ntrail'.
-*/
-#include <iostream>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/boyer_myrvold_planar_test.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/graph/connected_components.hpp>
-#include <boost/config.hpp>
-#include <vector>
-#include <list>
-#include <string>
-#include <algorithm>    // std::find
-#include <fstream>
-#include "Atrail.hpp"
+#include "Atrail_search.hpp"
 
 
 
-int main(int argc, char** argv)
+int atrail_search::main(int argc, const char* argv[], vHelix &parent)
 {
-	std::cout<<"INFO: Atrail_search, searchs for an Atrail for a given planar embedding."<<std::endl;
-	if(argc < 2)
+	parent.sendToConsole_("INFO: Atrail_search, searchs for an Atrail for a given planar embedding.\n");
+    if(argc < 2)
 	{
-		std::cerr << "ERROR! Usage: " << "Atrail_search " << "input_edgecode " <<"[output_edgetrail] "<<"[output_nodetrail]" <<std::endl;
+		parent.sendToConsole_("ERROR! Usage: Atrail_search input_edgecode [output_edgetrail] [output_nodetrail]");
 		return 1;
-	}else
+    }else
 	{
 		std::string edgecode_file(argv[1]);
 		std::string edgetrail_file;
@@ -40,11 +21,10 @@ int main(int argc, char** argv)
 		}else{
 			edgetrail_file = std::string(argv[2]);
 			if(argc >= 4) nodetrail_file = std::string(argv[3]);
-			if(argc >= 5) std::cerr<<"WARNING: You have more arguments than required, ignoring the arguments after the third ..."<<std::endl;
+			if(argc >= 5) parent.sendToConsole_("WARNING: You have more arguments than required, ignoring the arguments after the third ...\n");
 		}
 
 		std::vector<std::vector<size_t> > edge_code;
-
 		// Attempt to read the edge code from the provided file and process if read was successful.
 		if(read_edge_code(std::string(edgecode_file), edge_code))
 		{
@@ -60,26 +40,37 @@ int main(int argc, char** argv)
 				{
 					ind2pair[edge_code[i][j]].push_back(i);
 				}
+
 			}
 
 			for( unsigned int i = 0; i < m; ++i)
 			{
 				add_edge(ind2pair[i][0], ind2pair[i][1], i, G);
 			}
-			std::cout<<"INFO: Read graph from the edgecode "<<edgecode_file<<std::endl;
+
+			parent.sendToConsole_("INFO: Read graph from the edgecode ");
+			parent.sendToConsole_(std::string(edgecode_file));
+			parent.sendToConsole_("\n");
 			//std::cout<<"INFO: Graph "<<edgecode_file<<"\n"<<to_string_graph(G)<<std::endl;
 			std::list<Vertex> node_trail;
-			if(Atrail_search(G, edge_code, edge_trail, node_trail) == true)
-			{
-				std::cout<<"INFO: Found an A-trail for the graph"<<std::endl;
+            std::string output;
+            if(Atrail_search(G, edge_code, edge_trail, node_trail, parent) == true)
+            {
+				parent.sendToConsole_("INFO: Found an A-trail for the graph\n");
 				std::ofstream ofs(edgetrail_file.c_str(), std::ios::out);
 				if( !ofs.is_open())
 				{
-					std::cerr<<"ERROR! Unable to create file "<<edgetrail_file<<std::endl;
+					std::stringstream fileError;
+                    fileError << "ERROR: Unable to create file: " << edgetrail_file << std::endl;
+                    output = (fileError.str());
+                    parent.sendToConsole_(output);
 					return 2;
 				}else
 				{
-					std::cout<<"INFO: Appending the trail as edge list to file "<<edgetrail_file<<std::endl;
+					std::stringstream trailAppend;
+					trailAppend << "INFO: Appending the trail as edge list to file: " << edgetrail_file  << std::endl;
+                    output = trailAppend.str();
+                    parent.sendToConsole_(output);
 					for( std::list<std::size_t>::iterator it = edge_trail.begin(); it != edge_trail.end(); it++)
 					{
 							ofs<<*it<<" ";
@@ -89,11 +80,17 @@ int main(int argc, char** argv)
 				std::ofstream nfs(nodetrail_file.c_str(), std::ios::out);
 				if( !nfs.is_open())
 				{
-					std::cerr<<"ERROR! Unable to create file "<<nodetrail_file<<std::endl;
+					std::stringstream nodetrailError;
+					nodetrailError << "ERROR! Unable to create file "<<nodetrail_file<<std::endl;
+                    output = nodetrailError.str();
+                    parent.sendToConsole_(output);
 					return 2;
 				}else
 				{
-					std::cout<<"INFO: Appending the trail as node list to file "<<nodetrail_file<<std::endl;
+					std::stringstream infoTrail;
+					infoTrail << "INFO: Appending the trail as node list to file "<<nodetrail_file<<std::endl;
+                    output = infoTrail.str();
+                    parent.sendToConsole_(output);
 					for( std::list<Vertex>::iterator it = node_trail.begin(); it != node_trail.end(); it++)
 					{
 							nfs<<*it<<" ";
@@ -103,12 +100,12 @@ int main(int argc, char** argv)
 				return 0;
 			}else
 			{
-				std::cerr<<"ERROR! Unable to find an Atrail for the given code"<<std::endl;
+				parent.sendToConsole_("ERROR! Unable to find an Atrail for the given code\n");
 				return 1;
 			}
 		} else
 		{
-			std::cerr<<"ERROR! Invalid edge code..., aborting with error"<<std::endl;
+			parent.sendToConsole_("ERROR! Invalid edge code..., aborting with error\n");
 			return 3;
 		}
 	}

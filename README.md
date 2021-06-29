@@ -1,5 +1,7 @@
 # BScOR: Beam Scaffolded Origami Routing
 
+This version is a copy of [vHelix-Dashboard](https://github.com/henkkagee/vHelix-Dashboard) with an interface for calling scaffold-routing-rectification from a batch file, as in [vHelix-server](https://github.com/emilhiitola/vHelix-server)
+
 ## INTRODUCTION
 
 The program *bscor* is a pipeline of executables for routing polyhedal (version 0.1) and flat meshes (since version 1.0) and relaxing a physical cylinderical model of the mesh so that the mesh can be assembled from DNA at the nanoscale. The original source code for the physical relaxation is found in the repository https://github.com/gardell/scaffold-routing-rectification. The original relaxation code only supported polyhedral meshes; a clone which supports flat meshes is included here. The research related to bscor pipeline and its companion Maya vhelix plugin (http://www.vhelix.net/) are the following: 

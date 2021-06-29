@@ -1,9 +1,12 @@
 /*
+ *
  * Atrail.cpp
  *
  *  Created on: Jul 4, 2013
  *      Author: mohamma1
  */
+
+#include "Atrail.hpp"
 #include <iostream>
 #include <vector>
 #include <list>
@@ -16,8 +19,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "boost_graph_helper.hpp"
-#include "Atrail.hpp"
+
+
 
 // Do not define DEBUG if testing on large graphs. Some of the printing is during the exponential search and the printing can grow exponentially large even on moderately large graphs
 #define NDEBUG 
@@ -151,18 +154,18 @@ std::list<Vertex> find_eulerian_trail(const Graph & G)
 }
 
 
-bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_code, std::list<std::size_t> & trail_edgelist, std::list<Vertex> & new_trail  )
+bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_code, std::list<std::size_t> & trail_edgelist, std::list<Vertex> & new_trail  , vHelix &parent)
 {
-	std::cout<<"INFO: Checking if the graph has an A-trail ..."<<std::endl;
+    parent.sendToConsole_("INFO: Checking if the graph has an A-trail ...\n");
 	std::cout << "---------------------------------------" << std::endl;
-	std::cout<<"INFO: First Checking if the graph has an Eulerian trail ..."<<std::endl;
+    parent.sendToConsole_("INFO: First Checking if the graph has an Eulerian trail ...\n");
 	if(!has_eulerian_trail(Gr)) {
-		std::cerr<<"ERROR! The graph does not have an Eulerian trail and thus cannot have an A-trail!"<<std::endl;
+        parent.sendToConsole_("ERROR! The graph does not have an Eulerian trail and thus cannot have an A-trail!\n");
 		return false;
 	}
 	else
 	{
-		std::cout << "INFO: The graph has an Eulerian trail, now checking if it has an A-trail ..." << std::endl;
+        parent.sendToConsole_("INFO: The graph has an Eulerian trail, now checking if it has an A-trail ...\n");
 	}
 
 	unsigned int n = num_vertices(Gr);
@@ -224,7 +227,7 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 
 	if( is_multigraph )
 	{
-		std::cout<<"INFO: The graph is a multigraph."<<std::endl;
+        parent.sendToConsole_("INFO: The graph is a multigraph.\n");
 		DEBUGPRINT(std::cout<<"INFO: The extra edges which make the graph non-simple have been subdivided (node in each extra edge) ..."<<std::endl;)
 		DEBUGPRINT(std::cout<<"Graph after subdivision: \n"<<to_string_graph(G);)
 	}
@@ -243,19 +246,22 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 	}
 
 	std::vector<unsigned int> bn;
-	std::cout << "INFO: Enumerating the intersectable branching nodes (i.e. nodes with degree greater or equal to six) ..." << std::endl;
+    parent.sendToConsole_("INFO: Enumerating the intersectable branching nodes (i.e. nodes with degree greater or equal to six) ...\n");
 	enumerate_intersectable_nodes(G, bn);
+    std::stringstream sstr;
 	if (bn.empty())
 	{
-		std::cout<<"INFO: The graph has no branch nodes"<<std::endl;
+        parent.sendToConsole_("INFO: The graph has no branch nodes\n");
 	}else{
-		std::cout<<"INFO: Branch nodes ";
+        parent.sendToConsole_("INFO: Branch nodes \n");
 		for( std::vector<unsigned int>::iterator it = bn.begin(); it != bn.end(); ++it)
 		{
-			std::cout<<*it<<" ";
+            sstr<<*it<<" ";
 		}
-		std::cout<<std::endl;
+        sstr<<std::endl;
 	}
+    std::string tempStr(sstr.str());
+    parent.sendToConsole_(tempStr);
 	
 	std::map<Vertex, std::vector<Vertex> > bn_new_nodes_map;
 	std::vector<parity> parity_vec1;
@@ -263,7 +269,7 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 	bool has_Atrail = true;
 	if(!bn.empty())
 	{
-		std::cout << "INFO: Since there are branch nodes, the A-trail search may take a while ..." << std::endl;
+        parent.sendToConsole_("INFO: Since there are branch nodes, the A-trail search may take a while ...\n");
 		if (!split_and_check(G, P, bn, 0, odd_even, bn_new_nodes_map, parity_vec1))
 		{
 			has_Atrail = false;
@@ -277,7 +283,7 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 
 	if( has_Atrail)
 	{
-		std::cout<<"INFO: The graph has an A-trail"<<std::endl;
+        parent.sendToConsole_("INFO: The graph has an A-trail\n");
 		std::list<Vertex> Trail = find_eulerian_trail(G);
 		// In case the graph is a collection of isolated vertices, we have an empty trail.
 		if( Trail.size() == 0 )
@@ -365,7 +371,9 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 			}
 		}
 		new_trail.push_back(new_trail.front());
-		std::cout<<"INFO: "; print_walk(new_trail, "Trail (after local fixing): ");
+        std::cout<<"INFO: ";
+        std::string ret = print_walk(new_trail, "Trail (after local fixing): ");
+        parent.sendToConsole_(ret);
 
 		// Get the trail as an edge list.
 		trail_edgelist.clear();
@@ -420,8 +428,10 @@ bool Atrail_search(Graph & Gr, std::vector<std::vector<std::size_t> > & edge_cod
 				it = old;
 			}
 		}
-		std::cout<<"INFO: "; print_walk(trail_edgelist, "Trail (as edge list): ");
-		std::cout<<"INFO: "; print_walk(new_trail, "Trail (as node list): ");
+        std::cout<<"INFO: "; ret = print_walk(trail_edgelist, "Trail (as edge list): ");
+        parent.sendToConsole_(ret);
+        std::cout<<"INFO: "; ret = print_walk(new_trail, "Trail (as node list): ");
+        parent.sendToConsole_(ret);
 	}
 	std::cout<<"---------------------------------------"<<std::endl;
 	return has_Atrail;
@@ -654,6 +664,6 @@ void enumerate_intersectable_nodes(const Graph &G, std::vector<unsigned int> & b
 		color[u] = black;
 	}
 
-	delete color;
+    delete[] color;
 }
 
