@@ -8,85 +8,75 @@
  *  Argument 2 (Optional): output graph filename in dimacs format, uses the ply file basename + dimacs if not given (dimacs format mat.gsia.cmu.edu/COLOR/general/ccformat.ps).
  */
 
-// reading a text file
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/graph/boyer_myrvold_planar_test.hpp>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <stdio.h>
-#include <vector>
-#include <string.h>
-#include <algorithm>
-#include <sstream>
+/*
+ * Modified in June 2020 in order to be included and compiled in the new vHelix workspace
+ * Created .hpp file, added reference argument to console, redirected output and fixed memory leak on
+ * line 190.
+ * - Henrik Granö
+*/
 
-#define NDEBUG
-#include <assert.h>
-#include "boost_graph_helper.hpp"
+#include "ply_to_dimacs.hpp"
+
 using namespace std;
 using namespace boost;
+ 
 
-// Reads the ply file to the graph object. 
-bool read_ply (std::string input_filename, Graph & G);
-
-int main (int argc, char *argv[])
+int ply_to_dimacs::main(int argc, const char *argv[], vHelix &parent)
 {
 	Graph G;
-	std::cout<<"INFO: ply_to_dimacs, A simple PLY to dimacs converter."<<std::endl;
-	std::cout<<"INFO: PLY is a simple polygon format for describing 3d meshes, more info about the format can be found from http://paulbourke.net/dataformats/ply."<<std::endl;
-	std::cout<<"INFO: Dimacs is a simple file format for representing graphs, more info about dimacs can be found from http://dimacs.rutgers.edu/Challenges/."<<std::endl;
-	std::cout<<"INFO: This program converts from a simple PLY type with only vertex position and face desciption lines to a simple dimacs format with only edge desciptions."<<std::endl;
-	if(argc >= 2)
-	{
+    parent.sendToConsole_("INFO: ply_to_dimacs, A simple PLY to dimacs converter.\n");
+    parent.sendToConsole_("INFO: PLY is a simple polygon format for describing 3d meshes, more info about the format can be found from http://paulbourke.net/dataformats/ply.\n");
+    parent.sendToConsole_("INFO: Dimacs is a simple file format for representing graphs, more info about dimacs can be found from http://dimacs.rutgers.edu/Challenges/.\n");
+    parent.sendToConsole_("INFO: This program converts from a simple PLY type with only vertex position and face desciption lines to a simple dimacs format with only edge desciptions.\n");
 		// Parsing arguments
 		std::string inputply(argv[1]);
 		std::string outputdimacs;
 		if( argc >= 3 )
 		{
-			if(argc > 3) std::cerr<<"WARNING: more arguments than prescribed, ignoring arguments after the output_dimacs argument! Type ply_to_dimacs to read usage instructions!"<<std::endl;
+            if(argc > 3) parent.sendToConsole_("WARNING: more arguments than prescribed, ignoring arguments after the output_dimacs argument! Type ply_to_dimacs to read usage instructions!\n");
 			outputdimacs = std::string(argv[2]);
 		}else
 		{
 			outputdimacs = inputply.substr(0, inputply.find_last_of('.')).append(".dimacs");
 		}
 
-		if(!read_ply(inputply.c_str(), G)) return 1;
-		std::cout<<"INFO: Done reading the PLY file "<<inputply<<std::endl;
+        if(!read_ply(inputply.c_str(), G, parent)) return 1;
+        parent.sendToConsole_("INFO: Done reading the PLY file\n");
 		std::vector<int> component(num_vertices(G));
 		unsigned int num_components = connected_components(G, &component[0]);
 
 		assert( num_components == 1);
 		if( num_components != 1 )
 		{
-			std::cerr<< "WARNING: The graph in the PLY is not connected!"<<std::endl;
+            parent.sendToConsole_("WARNING: The graph in the PLY is not connected!\n");
 		}else
 		{
-			std::cout<<"INFO: The graph in the PLY is connected."<<std::endl;
+            parent.sendToConsole_("INFO: The graph in the PLY is connected.\n");
 		}	
 		if (boyer_myrvold_planarity_test(G))
-			std::cout << "INFO: The graph in the PLY is planar." << std::endl;
+            parent.sendToConsole_("INFO: The graph in the PLY is planar.\n");
 		else
 		{
-			std::cerr<< "WARNING: The graph in the PLY is not planar!" << std::endl;
+            parent.sendToConsole_("WARNING: The graph in the PLY is not planar!\n");
 		}
-		//std::cout<<"Graph:\n"<<to_string_graph(G, "Vertex ", "->\t\t\t", "\t" )<<std::endl;
+        //std::cout<<"Graph:\n"<<to_string_graph(G, "Vertex ", "->\t\t\t", "\t" )<<std::endl;
 		write_dimacs(outputdimacs, G);
-		std::cout<<"INFO: Successfully converted the PLY "<<inputply<<" to dimacs "<<outputdimacs<<"."<<std::endl;
+        stringstream sstr;
+        sstr << "INFO: Successfully converted the PLY "<<inputply<<" to dimacs "<<outputdimacs<<"."<<std::endl<<std::endl;
+        parent.sendToConsole_(sstr.str());
 		return EXIT_SUCCESS;
-	}else
-	{
+
+    /*
+     else{
 		std::cerr<<"ERROR: Improper usage"<<std::endl;
 		std::cerr << "Usage: " << "ply_to_dimacs " << "input_ply"<<" [output_dimacs]"<<std::endl;
 		return 1;
-	}
+    }*/
 
 }
 
-bool read_ply (std::string input_filename, Graph & G)
+// Reads the ply file to the graph object.
+bool ply_to_dimacs::read_ply (std::string input_filename, Graph & G, vHelix &parent)
 {
 	string line;
 	ifstream myfile (input_filename.c_str());
@@ -104,7 +94,7 @@ bool read_ply (std::string input_filename, Graph & G)
 		getline(myfile, line);
 		if( line.substr(0,3).compare("ply")) 
 		{
-			std::cerr<<"ERROR: the given file is not a PLY file"<<std::endl;
+            parent.sendToConsole_("ERROR: the given file is not a PLY file\n");
 			return false; //Making sure it is a ply file
 		}
 		
@@ -121,7 +111,7 @@ bool read_ply (std::string input_filename, Graph & G)
 				ss>>line_header>>type;									
 				if(type.compare("ascii") != 0)
 				{
-					std::cerr<<"ERROR: the PLY file is not ascii format"<<std::endl;
+                    parent.sendToConsole_("ERROR: the PLY file is not ascii format\n");
 					return false;
 				}
 			}
@@ -131,9 +121,11 @@ bool read_ply (std::string input_filename, Graph & G)
 				char *temp = new char[line.substr(15).size() + 1];
 				strcpy(temp, line.substr(15).c_str());
 				number_nodes = atoi(temp);
-				delete temp;
+                delete temp;
 				check_double = std::vector<bool>(number_nodes*number_nodes, false);
-				std::cout<<"INFO: Number of vertices: "<<number_nodes<<std::endl;
+                std::stringstream n_vert;
+                n_vert << "INFO: Number of vertices: "<<number_nodes<<std::endl;
+                parent.sendToConsole_(n_vert.str());
 				G = Graph(number_nodes);
 			}
 			if (line.substr(0,12).compare("element face") == 0)
@@ -142,7 +134,9 @@ bool read_ply (std::string input_filename, Graph & G)
 				char *temp = new char[line.substr(13).size() + 1];
 				strcpy(temp, line.substr(13).c_str());
 				number_faces = atoi(temp);
-				std::cout<<"INFO: Number of faces: "<<number_faces<<std::endl;
+                std::stringstream n_faces;
+                n_faces <<"INFO: Number of faces: "<<number_faces<<std::endl;
+                parent.sendToConsole_(n_faces.str());
 				delete temp;
 			}
 			if (line.substr(0,10).compare("end_header") == 0)
@@ -194,14 +188,16 @@ bool read_ply (std::string input_filename, Graph & G)
 						add_edge(start_node-1, end_node-1, G); //cout << "(" << start_node << ", " << end_node << ")\n"; //add_edge
 						check_double[min + (max-1)*(max-2)/2] = true;
 					}
-					delete temp;
+                    delete[] temp;
 				}
 			}
 		}
 		myfile.close();
 	}
 	else {
-		std::cerr << "ERROR: Unable to open file "<<input_filename<<std::endl;
+        std::stringstream err;
+        err << "ERROR: Unable to open file "<<input_filename<<std::endl;
+        parent.sendToConsole_(err.str());
 		return false;
 	}
 

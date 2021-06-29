@@ -1,0 +1,42 @@
+# Relaxation of original octahedron.ply file. 12 helices.
+# Total separation: Initial: min: 0.466815, max: 9.69905, average: 3.8668, total: 92.8031 nm, final: min: 0.0691452, max: 0.570035, average: 0.24466, total: 5.87185 nm
+hb helix_1 604 0.0480853 -72.075 72.0385 0.546629 0.745233 -0.306776 0.227406
+hb helix_2 604 -71.8829 -72.0884 0.0355456 0.409134 -0.576332 -0.697338 0.119042
+hb helix_3 599 -72.1291 0.00664366 -72.1256 0.893729 0.235548 0.369251 0.0970522
+hb helix_4 604 0.0433701 -72.0591 -72.0367 0.313806 -0.218198 0.533379 0.754601
+hb helix_5 599 72.0783 -72.0517 -0.00706493 -0.69168 0.146335 -0.384118 0.593817
+hb helix_6 604 71.9042 0.0203811 -72.0651 -0.91812 -0.106918 0.379101 0.0436604
+hb helix_7 604 0.0313375 72.0528 -72.0421 -0.226781 -0.307195 -0.746591 0.544797
+hb helix_8 604 -71.8522 72.0913 -0.022023 -0.123939 -0.696497 0.579168 0.405087
+hb helix_9 599 -72.1282 -0.0171039 72.1184 -0.0943893 0.370042 -0.229149 0.895349
+hb helix_10 604 0.0312303 72.0688 72.0383 -0.754873 0.532965 0.217875 0.314079
+hb helix_11 599 72.0923 72.029 0.0127367 0.598577 0.37664 0.155059 0.689786
+hb helix_12 604 71.896 -0.0359321 72.0668 0.0471417 -0.378652 -0.115302 0.917118
+
+c helix_1 f3' helix_2 f5'
+c helix_5 b3' helix_1 b5'
+c helix_2 f3' helix_3 f5'
+c helix_9 b3' helix_2 b5'
+c helix_3 f3' helix_4 f5'
+c helix_7 b3' helix_3 b5'
+c helix_4 f3' helix_5 f5'
+c helix_2 b3' helix_4 b5'
+c helix_5 f3' helix_6 f5'
+c helix_12 b3' helix_5 b5'
+c helix_6 f3' helix_7 f5'
+c helix_4 b3' helix_6 b5'
+c helix_7 f3' helix_8 f5'
+c helix_11 b3' helix_7 b5'
+c helix_8 f3' helix_9 f5'
+c helix_3 b3' helix_8 b5'
+c helix_9 f3' helix_10 f5'
+c helix_1 b3' helix_9 b5'
+c helix_10 f3' helix_11 f5'
+c helix_8 b3' helix_10 b5'
+c helix_11 f3' helix_12 f5'
+c helix_6 b3' helix_11 b5'
+c helix_12 f3' helix_1 f5'
+c helix_10 b3' helix_12 b5'
+
+autostaple
+ps helix_1 f3'

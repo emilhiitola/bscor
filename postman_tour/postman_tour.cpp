@@ -7,41 +7,24 @@
 *  Argument 1: filename of input graph in dimacs format.
 *  Argument 2: filename of output multigraph in dimacs format.
 */
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <assert.h>
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/johnson_all_pairs_shortest.hpp>
-#include "boost_graph_helper.hpp"
-#include <lemon/list_graph.h>
-#include <lemon/matching.h>
-#include <lemon/concepts/graph.h>
-#include <lemon/full_graph.h>
 
-#define NDEBUG
-#ifdef DEBUG
-#define DEBUGPRINT( x ) x
-#else
-#define DEBUGPRINT( x )
-#endif
+/*
+ * Modified in 2020 in order to be included and compiled in the new vHelix workspace
+ * Created .hpp file, added reference argument to console & redirected output.
+ * - Henrik Granö
+*/
+
+#include "postman_tour.hpp"
 
 using namespace lemon;
 using namespace std;
 
-typedef FullGraph::EdgeMap<signed int> Distances;
-typedef MaxWeightedPerfectMatching<FullGraph, Distances> MWPM;
 
-bool is_even(Graph G);
-
-int main(int argc, char* argv[])
+int postman_tour::main(int argc, const char* argv[], vHelix &parent)
 {
-	std::cout << "INFO: postman_tour, creates a multigraph from a simple graph using a min weight perfect matching to make the graph Eulerian. " << std::endl;
+    parent.sendToConsole_("INFO: postman_tour, creates a multigraph from a simple graph using a min weight perfect matching to make the graph Eulerian.\n");
 	if (argc != 3)
-		std::cerr << "ERROR! Usage: postman_tour input_dimacs output_dimacs" << std::endl;
+        parent.sendToConsole_("ERROR! Usage: postman_tour input_dimacs output_dimacs\n");
 	else
 	{
 		std::string infile(argv[1]);
@@ -54,7 +37,7 @@ int main(int argc, char* argv[])
 		assert(num_components == 1);
 		if (num_components != 1)
 		{
-			std::cerr << "ERROR! The graph of the ply file is not connected. Exiting with error!" << std::endl;
+            parent.sendToConsole_("ERROR! The graph of the ply file is not connected. Exiting with error!\n");
 			return 1;
 		}
 		VertexIterator vit, vend;
@@ -68,7 +51,7 @@ int main(int argc, char* argv[])
 		{
 			w[*e_it] = 1;
 		}
-		std::cout << "INFO: Finding odd degree vertices ..." << std::endl;
+        parent.sendToConsole_("INFO: Finding odd degree vertices ...\n");
 		for (boost::tie(vit, vend) = vertices(ingraph); vit != vend; ++vit)
 		{
 			if ((degree(*vit, ingraph) % 2) == 1)
@@ -86,12 +69,12 @@ int main(int argc, char* argv[])
 			get(edge_weight, ingraph);
 			boost::tie(e_it, e_end) = edges(ingraph);
 
-			std::cout << "INFO: Finding the shortest paths between odd degree vertices ..." << std::endl;
+            parent.sendToConsole_("INFO: Finding the shortest paths between odd degree vertices ...\n");
 			johnson_all_pairs_shortest_paths(ingraph, D);
 
 			// Add edges to the complete graph
 			std::size_t e_ind = 0;
-			std::cout << "INFO: Constructing a complete graph from the odd degree vertices ..." << std::endl;
+            parent.sendToConsole_("INFO: Constructing a complete graph from the odd degree vertices ...\n");
 			for (long unsigned int i = 0; i < num_odd_vertices; ++i)
 			{
 				for (long unsigned int j = i + 1; j < num_odd_vertices; ++j)
@@ -103,7 +86,7 @@ int main(int argc, char* argv[])
 			}
 
 			FullGraph lg = FullGraph(num_odd_vertices); // lemon complete graph for min weight perfect matching
-			Distances emap = Distances(lg, 1); // Unspecified distances set to 1
+            Distances emap = {lg, 1}; // Unspecified distances set to 1
 			EdgeIterator e_it, e_end;
 			boost::tie(e_it, e_end) = edges(oddgraph);
 			// Copying edge weights from boost graph to lemon full graph
@@ -115,7 +98,7 @@ int main(int argc, char* argv[])
 			}
 			// Max weight perfect matching on lemon graph == min weight matching on orignal dimacs graph
 			MWPM mwpm = MWPM(lg, emap);
-			std::cout << "INFO: Running the min weight matching algorithm ..." << std::endl;
+            parent.sendToConsole_("INFO: Running the min weight matching algorithm ...\n");
 			mwpm.run();
 
 			std::vector< std::pair<Vertex, Vertex> > match;
@@ -150,7 +133,7 @@ int main(int argc, char* argv[])
 			std::vector<Vertex> p(n);
 
 			// Adding multiedges along the path of each matched pair to make all vertices have even degree.
-			std::cout << "INFO: Adding edges along the shortest paths ..." << std::endl;
+            parent.sendToConsole_("INFO: Adding edges along the shortest paths ...\n");
 
 			//unsigned int num_components = connected_components(ingraph, &component[0]);
 			for (std::vector<std::pair<Vertex, Vertex> >::iterator vit = match.begin(); vit != match.end(); ++vit)
@@ -183,24 +166,26 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			std::cout << "INFO: There were no odd degree vertices!" << std::endl;
+            parent.sendToConsole_("INFO: There were no odd degree vertices!\n");
 		}
 		DEBUGPRINT(std::cout << to_string_graph(multigraph);)
 		assert(is_even(multigraph));
 		if (!is_even(multigraph))
 		{
-			std::cerr << "ERROR! an unknown error occurred. Output file not written." << std::endl;
+            parent.sendToConsole_("ERROR! an unknown error occurred. Output file not written.\n");
 			return 1;
 		}
 		write_dimacs(outfile, multigraph);
-		std::cout << "INFO: Wrote an Eulerian multigraph after addition of multiedges to " << outfile << std::endl;
+        std::stringstream sstr;
+        sstr << "INFO: Wrote an Eulerian multigraph after addition of multiedges to " << outfile << std::endl;
+        parent.sendToConsole_(sstr.str());
 		return EXIT_SUCCESS;
 
 	}
 	return EXIT_SUCCESS;
 }
 
-bool is_even(Graph G)
+bool postman_tour::is_even(Graph G)
 {
 	bool even = true;
 	std::size_t n = num_vertices(G);

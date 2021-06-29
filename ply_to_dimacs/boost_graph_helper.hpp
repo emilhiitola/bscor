@@ -39,7 +39,7 @@ typedef graph_traits < Graph >::adjacency_iterator AdjacencyIterator;
 void print_embedding(const planar_embedding_t & planar_embedding, const Graph & G, std::vector<std::vector<Vertex> > & embedding_as_vertex_order);
 // Converts a planar_embedding given by boyer_myrvold_planarity_test to an edge code. It needs an edge index for the edges.
 void embedding_to_edge_code(const planar_embedding_t & planar_embedding, Graph & G, std::vector<std::vector<std::size_t> > & edge_code);
-void print_walk(std::list<Vertex> Trail, std::string label);
+std::string print_walk(std::list<Vertex> Trail, std::string label);
 std::string to_string_graph(const Graph & G, std::string lineheader = "", std::string liststart=": ", std::string adj_sep = " ", std::string line_sep ="\n");
 std::string to_string_graph_edgelist(const Graph & G, std::string pair_sep= ",", std::string edge_frame_left="{", std::string edge_frame_right="}", std::string list_sep = " ");
 

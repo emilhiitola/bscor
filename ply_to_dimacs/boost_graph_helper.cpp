@@ -57,14 +57,18 @@ void embedding_to_edge_code(const planar_embedding_t & planar_embedding, Graph &
 	return;
 }
 
-void print_walk(std::list<Vertex> Trail, std::string label)
+std::string print_walk(std::list<Vertex> Trail, std::string label)
 {
+    std::stringstream sstr;
 	std::cout<<label;
 	for( std::list<Vertex>::iterator it = Trail.begin(); it != Trail.end(); it++)
 	{
-		std::cout<<*it<<" ";
+        sstr<<*it<<" ";
 	}
-	std::cout<<std::endl;
+    sstr<<std::endl;
+    std::string ret(sstr.str());
+    std::cout << ret;
+    return ret;
 }
 
 std::string to_string_graph(const Graph & G, std::string lineheader, std::string liststart, std::string adj_sep, std::string line_sep)
@@ -98,7 +102,7 @@ std::string to_string_graph_edgelist(const Graph & G, std::string pair_sep, std:
 	graph_traits<Graph>::edge_iterator edgeIt,edgeEnd;
 	std::ostringstream convert;
 	for( tie(edgeIt, edgeEnd) = edges(G); edgeIt != edgeEnd; ++edgeIt)
-	{
+    {
 		convert<<source(*edgeIt, G);
 		printed_graph.append(edge_frame_left);
 		printed_graph.append(convert.str());
@@ -115,7 +119,7 @@ std::string to_string_graph_edgelist(const Graph & G, std::string pair_sep, std:
 
 bool read_dimacs(std::string input_filename, Graph & G)
 {
-	std::string line;
+    std::string line;
 	std::ifstream ifs(input_filename.c_str(), std::ifstream::in);
 	if( !ifs.is_open())
 	{
@@ -127,9 +131,9 @@ bool read_dimacs(std::string input_filename, Graph & G)
 	const unsigned int MAX_LENGTH = 10;
 	char* line_type = new char[MAX_LENGTH];
 	char* format = new char[MAX_LENGTH];
-	std::size_t edge_ind = 0;
-	while(std::getline(ifs, line))
-	{
+    std::size_t edge_ind = 0;
+    while(std::getline(ifs, line))
+    {
 		if(!line.empty())
 		{
 			//std::cout<<line<<std::endl;
@@ -154,8 +158,8 @@ bool read_dimacs(std::string input_filename, Graph & G)
 		line.clear();
 	}
 	ifs.close();
-	delete line_type;
-	delete format;
+    delete[] line_type;
+    delete[] format;
 	return true;
 }
 
